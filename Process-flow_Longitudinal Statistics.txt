@@ -26,13 +26,12 @@ long_mris_slopes --qdec long.qdec.table.dat --meas thickness --hemi rh --sd /MRI
 
 
 *****OSGM Model******
-
-You can run it for all the kernals fwhm 5,10,15,20 and 25 etc
+## You can run it for all the kernals fwhm 5,10,15,20 and 25 etc
 mri_glmfit --osgm --glmdir lh.thickness.Patienttest.fwhm10 --y lh.Patienttest.thickness-pc1.stack.fwhm10.mgh --label lh.Patienttest.fsaverage.cortex.label --surf fsaverage lh
 mri_glmfit --osgm --glmdir rh.thickness.Patienttest.fwhm10 --y rh.Patienttest.thickness-pc1.stack.fwhm10.mgh --label rh.Patienttest.fsaverage.cortex.label --surf fsaverage rh
 
 ##lh
-#####Second state both steps combined here long_mri_slopes as well as mri_glmfit, for volume measure change --meas thickness to --meas volume
+##### For Second stage both steps combined here long_mri_slopes as well as mri_glmfit, for volume measure change --meas thickness to --meas volume (Do not need to repeat them)
 #long_mris_slopes --qdec long.qdec.table.dat --meas thickness --hemi lh --sd /MRI-Patient-Data-Location --do-spc --do-label --generic-time --qcache fsaverage --stack-spc lh.Patienttest.thickness-spc.stack.mgh --isec-labels lh.Patienttestspc.fsaverage.cortex.label
 #mri_glmfit --osgm --glmdir lh.thickness.Patienttest.fwhm5 --y lh.Patienttest.thickness-spc.stack.fwhm5.mgh --label lh.Patienttestspc.fsaverage.cortex.label --surf fsaverage lh
 
@@ -54,32 +53,29 @@ mri_glmfit-sim --glmdir rh.volume.Patienttest.fwhm10 --cache 3.0 pos --cwp 0.05 
 ## Viewing the output overlaid on fsaverage template
 freeview -f fsaverage/surf/lh.inflated:overlay=lh.thickness.Patienttest.fwhm10/osgm/cache.th30.pos.sig.cluster.mgh:overlay_threshold=2,5:annot=lh.thickness.Patienttest.fwhm10/osgm/cache.th30.pos.sig.ocn.annot -viewport 3d
 
-Viewing Output
-###
+### Viewing Output using Freesurfer Freeview
 ###freeview::: 
 For example: for a one sample group mean to test if the percent thickness change is different from zero, you'd run:
 
-This is the significance Map
+This is the significance Map- (left and rigt hemisphere, thickness and volume measures)
 freeview -f fsaverage/surf/lh.inflated:annot=aparc.annot:annot_outline=1:overlay=lh.thickness.Patienttest.fwhm10/osgm/sig.mgh:overlay_threshold=4,5 -viewport 3d
 freeview -f fsaverage/surf/rh.inflated:annot=aparc.annot:annot_outline=1:overlay=rh.thickness.Patienttest.fwhm10/osgm/sig.mgh:overlay_threshold=4,5 -viewport 3d
 freeview -f fsaverage/surf/lh.inflated:annot=aparc.annot:annot_outline=1:overlay=lh.volume.Patienttest.fwhm10/osgm/sig.mgh:overlay_threshold=4,5 -viewport 3d
 freeview -f fsaverage/surf/rh.inflated:annot=aparc.annot:annot_outline=1:overlay=rh.volume.Patienttest.fwhm10/osgm/sig.mgh:overlay_threshold=4,5 -viewport 3d
 
-To check the F ratio instead of significance Maps: Try this
+To check the F ratio instead of significance Maps: - (left and rigt hemisphere, thickness and volume measures) Try this aswell
 freeview -f fsaverage/surf/lh.inflated:annot=aparc.annot:annot_outline=1:overlay=lh.thickness.Patienttest.fwhm10/osgm/F.mgh:overlay_threshold=20,50 -viewport 3d
 freeview -f fsaverage/surf/rh.inflated:annot=aparc.annot:annot_outline=1:overlay=rh.thickness.Patienttest.fwhm10/osgm/F.mgh:overlay_threshold=20,50 -viewport 3d
 freeview -f fsaverage/surf/lh.inflated:annot=aparc.annot:annot_outline=1:overlay=lh.volume.Patienttest.fwhm10/osgm/F.mgh:overlay_threshold=20,50 -viewport 3d
 freeview -f fsaverage/surf/rh.inflated:annot=aparc.annot:annot_outline=1:overlay=rh.volume.Patienttest.fwhm10/osgm/F.mgh:overlay_threshold=20,50 -viewport 3d
 
-#####GroupAnalysis---View the Corrected Results
+##### GroupAnalysis---View the Corrected Results - volume measure is mentioned, also check the thickness measure
 
 freeview -f fsaverage/surf/lh.inflated:overlay=lh.volume.Patienttest.fwhm10/osgm/cache.th13.pos.sig.cluster.mgh:overlay_threshold=2,5:annot=lh.volume.Patienttest.fwhm10/osgm/cache.th13.pos.sig.ocn.annot -viewport 3d
 freeview -f fsaverage/surf/rh.inflated:overlay=rh.volume.Patienttest.fwhm10/osgm/cache.th13.pos.sig.cluster.mgh:overlay_threshold=2,5:annot=rh.volume.Patienttest.fwhm10/osgm/cache.th13.pos.sig.ocn.annot -viewport 3d
 
 
-Extracting Parcellations and segmentation stats
-###
-
+#### Extracting Parcellations and segmentation stats
 #For example to create a table with subcoritical ROI's from all patients at all time points you would run this :
 #asegstats2table --qdec-long long.qdec.table.dat --stats aseg.stats --tablefile aseg.table.txt
 #aparcstats2table --qdec-long long.qdec.table.dat --hemi lh --tablefile aparc_stats.txt
