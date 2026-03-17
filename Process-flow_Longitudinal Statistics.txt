@@ -1,0 +1,89 @@
+
+Statistical Analysis using FreeSurfer Longitudnal Two stage model
+
+
+Stage 1: The first stage reduces the temporal data within each subject to a single statistic (e.g. annualized atrophy rate or percent change)
+
+#for the left and right hemispheres considering cortical thickness and volume  measures
+# qdec long.qdec.table.dat contains fsid	fsid-base	years	CNR	Tesla values for each patient pre and post operation
+
+long_mris_slopes  --sd /MRI-Patient-Data-Location --qdec long.qdec.table.dat --meas thickness volume --hemi lh --do-avg --do-rate --do-pc1 --do-spc --do-stack --do-label --time years --qcache fsaverage
+long_mris_slopes  --sd /MRI-Patient-Data-Location --qdec long.qdec.table.dat --meas thickness volume --hemi rh --do-avg --do-rate --do-pc1 --do-spc --do-stack --do-label --time years --qcache fsaverage
+
+(optional)
+####Use this to get all the smoothing kernals- This can be use as input for the second stage ###################
+###long_mris_slopes --qdec long.qdec.table.dat --meas thickness --hemi lh --qcache fsaverage --stack-spc ./lh.thickness-spc.stack.mgh --sd /MRI-Patient-Data-Location
+##long_mris_slopes --qdec long.qdec.table.dat --meas thickness --hemi rh  --qcache fsaverage --stack-spc ./rh.thickness-spc.stack.mgh --sd /MRI-Patient-Data-Location
+
+
+Stage 2: Option mri_glmfit: ###########
+:::::: Use your own long.qdec.table.dat :::::::::::::::::::::
+###
+To test if percent thickness change is different from zero for one sample group mean, you'd run: --stack-pc1 , for symmetrized percent change --stack-spc
+
+long_mris_slopes --qdec long.qdec.table.dat --meas thickness --hemi lh --sd /MRI-Patient-Data-Location --do-spc --do-label --generic-time --qcache fsaverage --stack-spc lh.Patienttest.thickness-spc.stack.mgh --isec-labels lh.Patienttestspc.fsaverage.cortex.label
+long_mris_slopes --qdec long.qdec.table.dat --meas thickness --hemi rh --sd /MRI-Patient-Data-Location --do-spc --do-label --generic-time --qcache fsaverage --stack-spc rh.Patienttest.thickness-spc.stack.mgh --isec-labels rh.Patienttestspc.fsaverage.cortex.label
+
+
+*****OSGM Model******
+
+You can run it for all the kernals fwhm 5,10,15,20 and 25 etc
+mri_glmfit --osgm --glmdir lh.thickness.Patienttest.fwhm10 --y lh.Patienttest.thickness-pc1.stack.fwhm10.mgh --label lh.Patienttest.fsaverage.cortex.label --surf fsaverage lh
+mri_glmfit --osgm --glmdir rh.thickness.Patienttest.fwhm10 --y rh.Patienttest.thickness-pc1.stack.fwhm10.mgh --label rh.Patienttest.fsaverage.cortex.label --surf fsaverage rh
+
+##lh
+#####Second state both steps combined here long_mri_slopes as well as mri_glmfit, for volume measure change --meas thickness to --meas volume
+#long_mris_slopes --qdec long.qdec.table.dat --meas thickness --hemi lh --sd /MRI-Patient-Data-Location --do-spc --do-label --generic-time --qcache fsaverage --stack-spc lh.Patienttest.thickness-spc.stack.mgh --isec-labels lh.Patienttestspc.fsaverage.cortex.label
+#mri_glmfit --osgm --glmdir lh.thickness.Patienttest.fwhm5 --y lh.Patienttest.thickness-spc.stack.fwhm5.mgh --label lh.Patienttestspc.fsaverage.cortex.label --surf fsaverage lh
+
+##rh
+#long_mris_slopes --qdec long.qdec.table.dat --meas thickness --hemi rh --sd /MRI-Patient-Data-Location --do-spc --do-label --generic-time --qcache fsaverage --stack-spc rh.Patienttest.thickness-spc.stack.mgh --isec-labels rh.Patienttestspc.fsaverage.cortex.label
+#mri_glmfit --osgm --glmdir rh.thickness.Patienttest.fwhm5 --y rh.Patienttest.thickness-spc.stack.fwhm5.mgh --label rh.Patienttestspc.fsaverage.cortex.label --surf fsaverage lh
+
+
+###
+Cluster correction
+###(Z Monte Carlo simulation)(p=0.01 with --cache =3.0)
+mri_glmfit-sim --glmdir lh.thickness.Patienttest.fwhm5 --cache 3.0 pos --cwp 0.05 --2spaces
+mri_glmfit-sim --glmdir rh.thickness.Patienttest.fwhm5 --cache 3.0 pos --cwp 0.05 --2spaces
+
+mri_glmfit-sim --glmdir lh.volume.Patienttest.fwhm10 --cache 3.0 pos --cwp 0.05 --2spaces
+mri_glmfit-sim --glmdir rh.volume.Patienttest.fwhm10 --cache 3.0 pos --cwp 0.05 --2spaces
+
+
+## Viewing the output overlaid on fsaverage template
+freeview -f fsaverage/surf/lh.inflated:overlay=lh.thickness.Patienttest.fwhm10/osgm/cache.th30.pos.sig.cluster.mgh:overlay_threshold=2,5:annot=lh.thickness.Patienttest.fwhm10/osgm/cache.th30.pos.sig.ocn.annot -viewport 3d
+
+Viewing Output
+###
+###freeview::: 
+For example: for a one sample group mean to test if the percent thickness change is different from zero, you'd run:
+
+This is the significance Map
+freeview -f fsaverage/surf/lh.inflated:annot=aparc.annot:annot_outline=1:overlay=lh.thickness.Patienttest.fwhm10/osgm/sig.mgh:overlay_threshold=4,5 -viewport 3d
+freeview -f fsaverage/surf/rh.inflated:annot=aparc.annot:annot_outline=1:overlay=rh.thickness.Patienttest.fwhm10/osgm/sig.mgh:overlay_threshold=4,5 -viewport 3d
+freeview -f fsaverage/surf/lh.inflated:annot=aparc.annot:annot_outline=1:overlay=lh.volume.Patienttest.fwhm10/osgm/sig.mgh:overlay_threshold=4,5 -viewport 3d
+freeview -f fsaverage/surf/rh.inflated:annot=aparc.annot:annot_outline=1:overlay=rh.volume.Patienttest.fwhm10/osgm/sig.mgh:overlay_threshold=4,5 -viewport 3d
+
+To check the F ratio instead of significance Maps: Try this
+freeview -f fsaverage/surf/lh.inflated:annot=aparc.annot:annot_outline=1:overlay=lh.thickness.Patienttest.fwhm10/osgm/F.mgh:overlay_threshold=20,50 -viewport 3d
+freeview -f fsaverage/surf/rh.inflated:annot=aparc.annot:annot_outline=1:overlay=rh.thickness.Patienttest.fwhm10/osgm/F.mgh:overlay_threshold=20,50 -viewport 3d
+freeview -f fsaverage/surf/lh.inflated:annot=aparc.annot:annot_outline=1:overlay=lh.volume.Patienttest.fwhm10/osgm/F.mgh:overlay_threshold=20,50 -viewport 3d
+freeview -f fsaverage/surf/rh.inflated:annot=aparc.annot:annot_outline=1:overlay=rh.volume.Patienttest.fwhm10/osgm/F.mgh:overlay_threshold=20,50 -viewport 3d
+
+#####GroupAnalysis---View the Corrected Results
+
+freeview -f fsaverage/surf/lh.inflated:overlay=lh.volume.Patienttest.fwhm10/osgm/cache.th13.pos.sig.cluster.mgh:overlay_threshold=2,5:annot=lh.volume.Patienttest.fwhm10/osgm/cache.th13.pos.sig.ocn.annot -viewport 3d
+freeview -f fsaverage/surf/rh.inflated:overlay=rh.volume.Patienttest.fwhm10/osgm/cache.th13.pos.sig.cluster.mgh:overlay_threshold=2,5:annot=rh.volume.Patienttest.fwhm10/osgm/cache.th13.pos.sig.ocn.annot -viewport 3d
+
+
+Extracting Parcellations and segmentation stats
+###
+
+#For example to create a table with subcoritical ROI's from all patients at all time points you would run this :
+#asegstats2table --qdec-long long.qdec.table.dat --stats aseg.stats --tablefile aseg.table.txt
+#aparcstats2table --qdec-long long.qdec.table.dat --hemi lh --tablefile aparc_stats.txt
+						
+# for saving parellation stats in an excel file, run the following lines of code for both hemispheres and both measures(volume and thickness)
+aparcstats2table --subjects patient1Pre.long.patient1 patient1Pre.long.patient1 patient1Post.long.patient1 patient2Pre.long.patient2 --hemi lh --meas thickness --tablefile aparcstats_thickness_Patientlong_lh.xsls
+aparcstats2table --subjects patient1Pre.long.patient1 patient1Pre.long.patient1 patient1Post.long.patient1 patient2Pre.long.patient2 --hemi lh --meas volume --tablefile aparcstats_volume_Patientlong_lh.xsls
